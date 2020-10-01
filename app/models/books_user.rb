@@ -5,6 +5,8 @@ class BooksUser < ApplicationRecord
   after_save :recalculate_user_score
 
   def recalculate_user_score
-    user.update(book_score: BooksUser.where(user_id: user_id, finished: true).count)
+    score = BooksUser.after(Date.current.beginning_of_month).
+      where(user_id: user_id, finished: true).count
+    user.update(book_score: score)
   end
 end

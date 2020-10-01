@@ -9,5 +9,8 @@ namespace :daily do
     response = message.interpolate({username: "@#{user.username}"})
     response = Message.add_image(response, :drink)
     Telegram.bot.send_message({text: response, chat_id: chat_id, parse_mode: :Markdown})
+    if Date.current === Date.current.beginning_of_month
+      User.find_each{ |u| u.recalculate_scores }
+    end
   end
 end

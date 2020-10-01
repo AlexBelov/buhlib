@@ -60,9 +60,11 @@ class User < ApplicationRecord
 
   def recalculate_scores
     drink_score = DrinksUser.where(user_id: id).
+      after(Date.current.beginning_of_month).
       where.not(abv: nil, volume: nil).
       map{|du| begin du.volume * du.abv / 100.0 rescue 0 end }.sum
-    book_score = BooksUser.where(user_id: id, finished: true).count
+    book_score = BooksUser.where(user_id: id, finished: true).
+      after(Date.current.beginning_of_month).count
     update(drink_score: drink_score, book_score: book_score)
   end
 end
