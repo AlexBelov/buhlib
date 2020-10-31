@@ -10,9 +10,18 @@ class Drink < ApplicationRecord
     return "Не могу найти напиток в картотеке" unless drink.present?
     abv = handle_abv(tags)
     volume = handle_volume(tags)
+    incorrect_abv = !abv.present? || abv.present? && (abv <= 0 || abv > 100)
+    incorrect_volume = !volume.present? || volume.present? && (volume <= 0 || volume >= 10000)
+    if incorrect_abv || incorrect_volume
+      return "Проверьте правильность заполнения тегов: #{drink.name.gsub(/_/, ' ')} #{abv || '0'}% #{volume.to_i || '0'} мл."
+    end
     DrinksUser.create(user: user, drink: drink, abv: abv, volume: volume, file_id: file_id)
     response = "Добавлено #{drink.name.gsub(/_/, ' ')} #{abv || '0'}% #{volume.to_i || '0'} мл\nТеперь #{user.full_name} выпил #{Drink.pluralize(user.drinks.count)}! (#{Drink.pluralize(user.drinks_today)} за сегодня)"
-    response += "\n\n@trititaty одобряет!" if abv > 30 && volume.to_i >= 100
+    if abv > 30 && volume.to_i >= 100
+      response += "\n\n@trititaty одобряет!"
+    elsif abv < 10 && volume.to_i >= 1000
+      response += "\n\n@BagOfMilk одобряет!"
+    end
     return response
   rescue Exception => e
     puts "Exception in handle drink - #{e.message}".red
