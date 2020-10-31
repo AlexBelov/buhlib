@@ -27,7 +27,7 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       response = mute_or_unmute(message, true)
     elsif message['text'].present? && message['text'].include?('!warn')
       response = warn(message)
-    elsif message['text'].present? && reputation_words.map{|w| message['text'].include?(w)}.any?
+    elsif message['text'].present? && reputation_words.map{|w| message['text'].downcase.include?(w)}.any?
       response = reputation(message)
     elsif message['text'].present?
       response = Book.detect_book_mention(message['text'])
@@ -308,7 +308,7 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       value.
       split(',').
       map{|w| w.downcase.strip}
-    text = message['text']
+    text = message['text'].downcase
     reputation = reputation_user.reputation
     message = if reputation_increase_words.map{|w| text.include?(w)}.any?
       reputation += 1
