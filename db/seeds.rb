@@ -70,8 +70,13 @@ end
 end
 
 Config.where(key: 'chat_id').first_or_create(value: '')
+Config.where(key: 'warns_limit').first_or_create(value: '3')
+Config.where(key: 'reputation_increase_words').first_or_create(value: "Одобряю, Да благословит тебя Селестия")
+Config.where(key: 'reputation_decrease_words').first_or_create(value: "Порицаю, Да проклянёт тебя Луна")
 Message.where(slug: 'person_of_a_day').first_or_create(content: "*Человеком дня* сегодня будет %{username}! Поднимем же за него бокалы!")
 Message.where(slug: 'drink_buddy').first_or_create(content: "*%{buddy_name}* сегодня пьёт с *%{master_name}*")
+Message.where(slug: 'reputation_increase').first_or_create(content: "%{first} увеличил репутацию %{second} до %{reputation}")
+Message.where(slug: 'reputation_decrease').first_or_create(content: "%{first} понизил репутацию %{second} до %{reputation}")
 
 [
   {name: "roll", description: "ответ на вечный вопрос 'пить или не пить?'"},

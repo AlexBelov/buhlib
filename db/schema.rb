@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_18_123640) do
+ActiveRecord::Schema.define(version: 2020_10_31_122506) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -127,6 +127,7 @@ ActiveRecord::Schema.define(version: 2020_09_18_123640) do
     t.decimal "drink_score", precision: 10, scale: 2
     t.decimal "book_score", precision: 10, scale: 2
     t.datetime "last_message_at"
+    t.integer "reputation", default: 0, null: false
   end
 
 end

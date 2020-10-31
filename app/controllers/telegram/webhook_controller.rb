@@ -5,6 +5,12 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     response = '';
     user = User.handle_user(message['from'])
     user.update_columns(last_message_at: Time.current)
+    reputation_words = Config.
+      where(key: ['reputation_increase_words', 'reputation_decrease_words']).
+      pluck(:value).
+      join(',').
+      split(',').
+      map{|w| w.downcase.strip}
     check_for_achievements = false
     if message['new_chat_participant'].present?
       msg = Message.find_by(slug: 'welcome')
@@ -19,6 +25,8 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       response = mute_or_unmute(message, false)
     elsif message['text'].present? && message['text'].include?('!unmute')
       response = mute_or_unmute(message, true)
+    elsif message['text'].present? && reputation_words.map{|w| message['text'].include?(w)}.any?
+      response = reputation(message)
     elsif message['text'].present?
       response = Book.detect_book_mention(message['text'])
     elsif message['photo'].present?
@@ -197,7 +205,7 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       where.not(abv: nil, volume: nil).
       map{|du| begin du.volume * du.abv / 100.0 rescue 0 end }.sum
     book_score = BooksUser.where(user_id: user.id, finished: true).count
-    respond_with :message, text: "*100% Спирт*: #{user.drink_score.to_i} мл (всего #{drink_score.to_i} мл)\n*Законченные книги*: #{user.book_score.to_i} (всего #{book_score.to_i})", parse_mode: :Markdown
+    respond_with :message, text: "*100% Спирт*: #{user.drink_score.to_i} мл (всего #{drink_score.to_i} мл)\n*Законченные книги*: #{user.book_score.to_i} (всего #{book_score.to_i})\n*Репутация*: #{user.reputation}", parse_mode: :Markdown
   rescue Exception => e
     puts "Error in command handler".red
     puts e.message
@@ -269,5 +277,38 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     })
     return "*#{user.full_name}* cнял мьют с *#{name}*" if unmute
     "*#{user.full_name}* замьютил *#{name}* на #{distance_of_time_in_words(Time.current, until_time)}"
+  end
+
+  def reputation(message)
+    user = User.handle_user(message['from'])
+    reputation_user = begin User.handle_user(message['reply_to_message']['from']) rescue nil end
+    return unless user.present? && reputation_user.present? && user.id != reputation_user.id
+    reputation_increase_words = Config.find_by(key: 'reputation_increase_words').
+      value.
+      split(',').
+      map{|w| w.downcase.strip}
+    reputation_decrease_words = Config.find_by(key: 'reputation_decrease_words').
+      value.
+      split(',').
+      map{|w| w.downcase.strip}
+    text = message['text']
+    reputation = reputation_user.reputation
+    message = if reputation_increase_words.map{|w| text.include?(w)}.any?
+      reputation += 1
+      Message.find_by(slug: 'reputation_increase')
+    elsif reputation_decrease_words.map{|w| text.include?(w)}.any?
+      reputation -= 1
+      reputation = 0 if reputation < 0
+      Message.find_by(slug: 'reputation_decrease')
+    else
+      nil
+    end
+    return nil unless message.present?
+    reputation_user.update(reputation: reputation)
+    response = message.interpolate({
+      first: "[#{user.full_name_or_username}](tg://user?id=#{user.id})",
+      second: "[#{reputation_user.full_name_or_username}](tg://user?id=#{reputation_user.id})",
+      reputation: reputation
+    })
   end
 end
