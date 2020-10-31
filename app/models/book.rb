@@ -14,14 +14,11 @@ class Book < ApplicationRecord
     book = extract_book(payload)
     response = if user.books_users.where(book_id: book.id, finished: true).present?
       "Вы уже прочитали эту книгу"
-    elsif user.books_users.where(book_id: book.id, finished: false).today.present?
-      "Сегодня вы уже читали эту книгу"
     elsif user.books_users.where(book_id: book.id, finished: false).present?
-      user.books << book
-      "#{user.full_name} продолжает читать [книгу](#{book.url})"
+      "Вы уже читаете эту книгу"
     else
       user.books << book
-      "#{user.full_name} начинает читать новую книгу"
+      "#{user.full_name} начинает читать [книгу](#{book.url})"
     end
     return response
   rescue
@@ -33,8 +30,9 @@ class Book < ApplicationRecord
     response = if user.books_users.where(book_id: book.id, finished: true).present?
       "Вы уже прочитали эту книгу"
     else
-      user.books << book
-      BooksUser.create(book_id: book.id, user_id: user.id, finished: true)
+      book_user = user.books_users.where(book_id: book.id, finished: false)
+      book_user ||= BooksUser.create(book_id: book.id, user_id: user.id, finished: true)
+      book_user.update(finished: true)
       "Теперь #{user.full_name} прочитал #{Book.pluralize(user.books_users.where(finished: true).count)}! (#{Book.pluralize(user.books_finished_this_month)} за этот месяц)"
     end
     return response

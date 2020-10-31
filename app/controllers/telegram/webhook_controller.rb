@@ -64,10 +64,12 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     puts e.message
   end
 
-  def top_books!(data = nil, *)
-    ordered_books = Book.joins(:users).order("COUNT(users.id) DESC").group("books.id").limit(5)
-    response = ordered_books.each_with_index.map{|b, i| "#{i + 1}. #{b.url}"}.join("\n")
-    respond_with :message, text: "Топ книг\n" + response
+  def reading!(data = nil, *)
+    response = BooksUser.where(finished: false).
+      includes(:user, :book).order(created_at: :desc).
+      each_with_index.map{|bu, i| "#{i+1}. #{bu.user.full_name} читает #{bu.book.url}" }.
+      join("\n")
+    respond_with :message, text: "Книги, читаемые сейчас\n" + response, disable_web_page_preview: true
   rescue Exception => e
     puts "Error in command handler".red
     puts e.message
