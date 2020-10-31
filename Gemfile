@@ -20,6 +20,7 @@ gem 'by_star'
 gem 'russian'
 gem 'rails_admin', '~> 2.0'
 gem 'devise'
+gem 'untappd'
 
 group :development do
   gem 'web-console', '>= 3.3.0'

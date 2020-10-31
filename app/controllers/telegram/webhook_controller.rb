@@ -213,6 +213,21 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     puts e.message
   end
 
+  def set_untappd_username!(data = nil, *)
+    user = User.handle_user(from)
+    return unless user.present?
+    user.update(untappd_username: data) if data.present? && User.where(untappd_username: data).empty?
+    response = if user.untappd_username.present?
+      "Для #{user.full_name_or_username} включена синхронизация с untappd по юзернейму #{user.untappd_username}"
+    else
+      "Невозможно включить синхронизацию с untappd для #{data}"
+    end
+    respond_with :message, text: response, parse_mode: :Markdown
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
   private
 
   def kick_or_ban(message, ban = false)
@@ -323,11 +338,11 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       [message_from['id'], [message_from['first_name'], message_from['last_name']].join(' ')]
     end
     return "Не могу выдать пользователю warn" unless user_id.present?
-    user.update_columns(warns: user.warns + 1)
+    user.update(warns: user.warns + 1)
     warns_limit = Config.find_by(key: 'warns_limit').value.to_i
     response = ''
     if user.warns >= warns_limit
-      user.update_columns(warns: 0)
+      user.update(warns: 0)
       until_date = (Time.current + 1.minute).to_i
       Telegram.bot.kick_chat_member({
         chat_id: Rails.application.credentials.telegram[:bot][:chat_id].to_i,

@@ -75,4 +75,8 @@ class User < ApplicationRecord
       after(Date.current.beginning_of_month).count
     update(drink_score: drink_score, book_score: book_score)
   end
+
+  def sync_untappd
+    return false unless untappd_username.present?
+  end
 end
