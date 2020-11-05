@@ -25,7 +25,7 @@ class Book < ApplicationRecord
     nil
   end
 
-    def self.finish_book(user, payload)
+  def self.finish_book(user, payload)
     book = extract_book(payload)
     response = if user.books_users.where(book_id: book.id, finished: true).present?
       "Вы уже прочитали эту книгу"
