@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_31_123632) do
+ActiveRecord::Schema.define(version: 2020_11_05_163442) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -130,6 +130,7 @@ ActiveRecord::Schema.define(version: 2020_10_31_123632) do
     t.integer "reputation", default: 0, null: false
     t.integer "warns", default: 0, null: false
     t.string "untappd_username"
+    t.boolean "run", default: false, null: false
   end
 
 end

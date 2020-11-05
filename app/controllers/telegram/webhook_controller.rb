@@ -228,6 +228,53 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     puts e.message
   end
 
+  def run!(data = nil, *)
+    user = User.handle_user(from)
+    return unless user.present?
+    drinks_count = user.drinks.count
+    books_count = user.drinks.count
+    response = if drinks_count <= 0 || books_count <= 0
+      "Для того, чтобы баллотироваться в президенты Бухотеки нужно и пить, и читать! Выпей бухла и прочитай книгу!"
+    else
+      user.update(run: true)
+      participants = User.where(run: true)
+      "#{user.full_name_or_username} баллотируется на пост президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+    end
+    respond_with :message, text: response, parse_mode: :Markdown
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
+  def unrun!(data = nil, *)
+    user = User.handle_user(from)
+    return unless user.present?
+    response = if user.run
+      user.update(run: false)
+      participants = User.where(run: true)
+      "#{user.full_name_or_username} снимает свою кандидатуру с выборов президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+    else
+      "Вы и так не участвуете в выборах президента Бухотеки."
+    end
+    respond_with :message, text: response, parse_mode: :Markdown
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
+  def elections!(data = nil, *)
+    participants = User.where(run: true)
+    response = if participants.count > 0
+      "В выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+    else
+      "Никто не выдвигал свою кандидатуру на выборы"
+    end
+    respond_with :message, text: response, parse_mode: :Markdown
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
   private
 
   def kick_or_ban(message, ban = false)
