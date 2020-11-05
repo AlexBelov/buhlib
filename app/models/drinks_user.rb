@@ -3,6 +3,7 @@ class DrinksUser < ApplicationRecord
   belongs_to :drink
 
   after_save :recalculate_user_score
+  before_destroy :stop_destroy
 
   def recalculate_user_score
     score = DrinksUser.where(user_id: user_id).
@@ -10,6 +11,11 @@ class DrinksUser < ApplicationRecord
       where.not(abv: nil, volume: nil).
       map{|du| begin du.volume * du.abv / 100.0 rescue 0 end }.sum
     user.update(drink_score: score)
+  end
+
+  def stop_destroy
+    errors.add(:base, :undestroyable)
+    throw :abort
   end
 
   rails_admin do
