@@ -45,4 +45,29 @@ class Drink < ApplicationRecord
   rescue
     nil
   end
+
+  def self.sync_untappd(user)
+    return unless user.untappd_username.present?
+    drink = Drink.where(name: 'пиво').first
+    feed = Untappd::User.feed(user.untappd_username)
+    responses = feed['checkins']['items'].map do |checkin|
+      begin
+        checkin_at = Time.parse(checkin['created_at'])
+        next unless checkin_at > user.last_untappd_checkin_at
+        comment = checkin['comment']
+        photo = begin checkin['media']['items'][0]['photo']['photo_img_md'] rescue nil end
+        photo_tag = photo.present? ? "[\u200c](#{photo})" : ''
+        volume = comment.scan(/(\d+)\s?[мл|ml]/).flatten.first.to_f
+        volume = 500 unless volume > 0
+        abv = chekin['beer']['beer_abv'].to_f
+        beer_name = checkin['beer']['beer_name']
+        beer_style = checkin['beer']['beer_name']['beer_style']
+        next if abv <= 0 || volume <= 0
+        DrinksUser.create(user: user, drink: drink, abv: abv, volume: volume, untappd: true)
+        "Untappd: добавлено пиво (#{beer_name} | #{beer_style}) #{abv || '0'}% #{volume.to_i || '0'} мл\nТеперь #{user.full_name} выпил #{Drink.pluralize(user.drinks.count)}! (#{Drink.pluralize(user.drinks_today)} за сегодня)#{photo_tag}"
+      rescue
+        next
+      end
+    end
+  end
 end

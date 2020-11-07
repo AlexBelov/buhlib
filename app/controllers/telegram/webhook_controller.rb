@@ -223,13 +223,30 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   def set_untappd_username!(data = nil, *)
     user = User.handle_user(from)
     return unless user.present?
-    user.update(untappd_username: data) if data.present? && User.where(untappd_username: data).empty?
+    user.update(untappd_username: data, last_untappd_checkin_at: Time.current) if data.present? && User.where(untappd_username: data).empty?
     response = if user.untappd_username.present?
       "Для #{user.full_name_or_username} включена синхронизация с untappd по юзернейму #{user.untappd_username}"
     else
       "Невозможно включить синхронизацию с untappd для #{data}"
     end
     respond_with :message, text: response, parse_mode: :Markdown
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
+  def sync_untappd!(data = nil, *)
+    user = User.handle_user(from)
+    return unless user.present?
+    if !user.untappd_username.present?
+      response = "Для #{user.full_name_or_username} не включена синхронизация с untappd"
+      respond_with :message, text: response, parse_mode: :Markdown
+      return
+    end
+    responses = Drink.sync_untappd(user)
+    responses.each do |response|
+      respond_with :message, text: response, parse_mode: :Markdown
+    end
   rescue Exception => e
     puts "Error in command handler".red
     puts e.message
