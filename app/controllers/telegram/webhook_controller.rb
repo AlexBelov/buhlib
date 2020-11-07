@@ -243,8 +243,8 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       respond_with :message, text: response, parse_mode: :Markdown
       return
     end
-    if user.untappd_synced_at > Time.current - 1.hour
-      response = "Синхронизация с untappd возможна раз в час"
+    if user.untappd_synced_at > Time.current - 10.minutes
+      response = "Синхронизация с untappd возможна раз в 10 минут"
       respond_with :message, text: response, parse_mode: :Markdown
       return
     end
