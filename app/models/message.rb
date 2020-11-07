@@ -25,6 +25,7 @@ class Message < ApplicationRecord
       notification_response += ranks.map{|a| a.response(user)}.join("\n")
       has_book_achievement ||= ranks.any?{|a| a.entity == 'book'}
     end
+    return nil unless notification_response.present?
     add_image(notification_response, has_book_achievement ? :book : :drink)
   end
 end
