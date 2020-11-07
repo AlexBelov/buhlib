@@ -33,6 +33,8 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       mute_or_unmute(message, true)
     elsif message['text'].present? && message['text'].include?('!warn')
       warn(message)
+    elsif message['text'].present? && message['text'].include?('!pin')
+      pin(message, true)
     elsif message['text'].present? && reputation_words.map{|w| message['text'].downcase.include?(w)}.any?
       reputation(message)
     elsif message['text'].present?
@@ -376,6 +378,20 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     })
     return "*#{user.full_name}* cнял мьют с *#{name}*" if unmute
     "*#{user.full_name}* замьютил *#{name}* на #{distance_of_time_in_words(Time.current, until_time)}"
+  end
+
+  def pin(message, notify = true)
+    user = User.handle_user(message['from'])
+    if user.last_pinned_at.present? && user.last_pinned_at > Time.current - 12.hours
+      return "Закрепить сообщение можно раз в 12 часов"
+    end
+    reply = message['reply_to_message']
+    return unless reply.present?
+    reply_id = reply['message_id']
+    chat_id = Rails.application.credentials.telegram[:bot][:chat_id].to_i
+    Telegram.bot.pin_chat_message(chat_id: chat_id, message_id: reply_id, disable_notification: !notify)
+    user.update(last_pinned_at: Time.current)
+    nil
   end
 
   def reputation(message)
