@@ -14,3 +14,5 @@ namespace :daily do
     end
   end
 end
+
+# User.all.map{|user| present = begin ['restricted', 'left'].exclude? Telegram.bot.get_chat_member(chat_id: Rails.application.credentials.telegram[:bot][:chat_id].to_i, user_id: user.telegram_id)['result']['status'] rescue false end; user.update(status: :left) unless present; present;}

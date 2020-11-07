@@ -2,7 +2,7 @@ namespace :restore do
   desc "Restore history"
   task drinks: :environment do
     user = User.find(1)
-    messages = JSON.parse(File.open("lib/tasks/assets/result.json").read)
+    messages = JSON.parse(File.open("lib/assets/result.json").read)
     drink_messages = messages["messages"].select{|m| m["type"] == 'message' && m["from"] == 'Triod' && begin m['text'][0]['text'].include?('#') && !m['text'][0]['text'].include?('https') rescue false end}.map{|m| {text: m['text'].map{|t| t['text']}.join(' '), date: Time.parse(m['date'])}}
     drink_messages.each do |msg|
       payload = msg[:text]
@@ -30,7 +30,7 @@ namespace :restore do
 
   task books: :environment do
     user = User.find(1)
-    messages = JSON.parse(File.open("lib/tasks/assets/result.json").read)
+    messages = JSON.parse(File.open("lib/assets/result.json").read)
     book_messages = messages["messages"].select{|m| m["type"] == 'message' && m["from"] == 'Triod' && begin m['text'][0]['text'].include?('/finish_book') rescue false end}.map{|m| {text: begin m['text'][2]['text'] rescue nil end, date: m['date']}}
     book_messages.map do |msg|
       payload = msg[:text]
