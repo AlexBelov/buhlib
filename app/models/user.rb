@@ -57,7 +57,7 @@ class User < ApplicationRecord
   end
 
   def books_finished_this_month
-    books_users.where(finished: true).after(Time.current.beginning_of_month).count
+    books_users.where(finished: true).after(Time.current.beginning_of_month, field: :updated_at).count
   end
 
   def drinks_today
@@ -74,7 +74,7 @@ class User < ApplicationRecord
       where.not(abv: nil, volume: nil).
       map{|du| begin du.volume * du.abv / 100.0 rescue 0 end }.sum
     book_score = BooksUser.where(user_id: id, finished: true).
-      after(Date.current.beginning_of_month).count
+      after(Date.current.beginning_of_month, field: :updated_at).count
     update(drink_score: drink_score, book_score: book_score)
   end
 

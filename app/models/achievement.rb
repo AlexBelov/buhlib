@@ -7,11 +7,11 @@ class Achievement < ApplicationRecord
     strong_alcohol_threshold = Config.find_by(key: 'strong_alcohol_threshold').value.to_f
     drinks_today_relation = user.drinks_users.where('abv > 0').today
     drinks_today = drinks_today_relation.count
-    books_today = user.books_users.where(finished: false).today.count
-    books_finished_today = user.books_users.today.where(finished: true).count
+    books_today = user.books_users.where(finished: false).by_date(Date.today, field: :updated_at).count
+    books_finished_today = user.books_users.by_date(Date.today, field: :updated_at).where(finished: true).count
     drinks_this_week = user.drinks_users.where('abv > 0').after(Time.current.beginning_of_week).count
-    books_this_week = user.books_users.where(finished: false).after(Time.current.beginning_of_week).count
-    books_finished_this_month = user.books_users.where(finished: true).after(Time.current.beginning_of_week).count
+    books_this_week = user.books_users.where(finished: false).after(Time.current.beginning_of_week, field: :updated_at).count
+    books_finished_this_month = user.books_users.where(finished: true).after(Time.current.beginning_of_week, field: :updated_at).count
     drinks_this_month = user.drinks_users.where('abv > 0').after(Time.current.beginning_of_month).count
     abv_sequence = drinks_today_relation.pluck(:abv).compact.map{|abv| abv >= strong_alcohol_threshold ? 'strong' : 'weak'}.join(',')
     abv_relations = drinks_today_relation.each_with_index.map do |d, i|

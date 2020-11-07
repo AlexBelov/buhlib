@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_07_112413) do
+ActiveRecord::Schema.define(version: 2020_11_07_113636) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -86,6 +86,7 @@ ActiveRecord::Schema.define(version: 2020_11_07_112413) do
     t.string "file_id"
     t.decimal "abv", precision: 10, scale: 2
     t.decimal "volume", precision: 10, scale: 2
+    t.boolean "untappd", default: false, null: false
   end
 
   create_table "images", force: :cascade do |t|
