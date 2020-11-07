@@ -12,28 +12,35 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       split(',').
       map{|w| w.downcase.strip}
     check_for_achievements = false
-    if message['new_chat_participant'].present?
+    response = if message['new_chat_participant'].present?
+      new_user = User.handle_user(message['new_chat_participant'])
+      new_user.update(status: :active)
       msg = Message.find_by(slug: 'welcome')
       return unless msg.present?
       response = msg.interpolate({first_name: User.get_full_name(message['new_chat_participant'])})
-      response = Message.add_image(response, :drink)
+      Message.add_image(response, :drink)
+    elsif message['left_chat_participant'].present?
+      user_left = User.handle_user(message['left_chat_participant'])
+      user_left.update(status: :left)
+      nil
     elsif message['text'].present? && message['text'] == '!kick'
-      response = kick_or_ban(message, false)
+      kick_or_ban(message, false)
     elsif message['text'].present? && message['text'] == '!ban'
-      response = kick_or_ban(message, true)
+      kick_or_ban(message, true)
     elsif message['text'].present? && message['text'].include?('!mute')
-      response = mute_or_unmute(message, false)
+      mute_or_unmute(message, false)
     elsif message['text'].present? && message['text'].include?('!unmute')
-      response = mute_or_unmute(message, true)
+      mute_or_unmute(message, true)
     elsif message['text'].present? && message['text'].include?('!warn')
-      response = warn(message)
+      warn(message)
     elsif message['text'].present? && reputation_words.map{|w| message['text'].downcase.include?(w)}.any?
-      response = reputation(message)
+      reputation(message)
     elsif message['text'].present?
-      response = Book.detect_book_mention(message['text'])
+      Book.detect_book_mention(message['text'])
     elsif message['photo'].present?
       response = Drink.handle_drink(user, message)
       check_for_achievements = response.present?
+      response
     end
     return unless response.present?
     respond_with :message, text: response, parse_mode: :Markdown
@@ -290,6 +297,8 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       [message_from['id'], [message_from['first_name'], message_from['last_name']].join(' ')]
     end
     return "Не могу #{ban ? 'забанить' : 'кикнуть'} пользователя" unless user_id.present?
+    target_user = User.find_by(telegram_id: user_id)
+    target_user.update(status: ban ? :banned : :kicked)
     until_date = ban ? (Time.current + 2.years).to_i : (Time.current + 1.minute).to_i
     Telegram.bot.kick_chat_member({chat_id: Rails.application.credentials.telegram[:bot][:chat_id].to_i, user_id: user_id, until_date: until_date})
     "*#{user.full_name}* #{ban ? 'забанил' : 'кикнул'} *#{name}*"

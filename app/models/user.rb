@@ -8,6 +8,8 @@ class User < ApplicationRecord
   has_and_belongs_to_many :achievements
   has_and_belongs_to_many :ranks
 
+  enum status: [:active, :left, :kicked, :banned]
+
   def full_name
     [first_name, last_name].join(' ').strip
   end
@@ -78,5 +80,13 @@ class User < ApplicationRecord
 
   def sync_untappd
     return false unless untappd_username.present?
+  end
+
+  rails_admin do
+    list do
+      field :id
+      field :status
+      include_all_fields
+    end
   end
 end
