@@ -133,7 +133,7 @@ ActiveRecord::Schema.define(version: 2020_11_07_113636) do
     t.string "untappd_username"
     t.boolean "run", default: false, null: false
     t.integer "status", default: 0, null: false
-    t.datetime "last_untappd_checkin_at"
+    t.datetime "untappd_synced_at"
   end
 
 end
