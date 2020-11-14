@@ -12,6 +12,10 @@ namespace :daily do
     if Date.current === Date.current.beginning_of_month
       User.find_each{ |u| u.recalculate_scores }
     end
+    User.where.not(untappd_username: [nil, '']).each do |user|
+      responses = Drink.sync_untappd(user)
+      Telegram.bot.send_message({text: responses.join("\n\n"), chat_id: chat_id, parse_mode: :Markdown})
+    end
   end
 end
 
