@@ -178,10 +178,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   def remove_book!(data = nil, *)
     user = User.handle_user(from)
     return unless user.present?
-    book = Book.extract_book(data).url
+    book = Book.extract_book(data)
     BooksUser.where(book_id: book.id, user_id: user.id).delete_all
     user.recalculate_scores
-    respond_with :message, text: "Книга удалена", parse_mode: :Markdown if ar_response.present?
+    respond_with :message, text: "Книга удалена", parse_mode: :Markdown
   rescue Exception => e
     puts "Error in command handler".red
     puts e.message
