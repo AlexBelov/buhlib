@@ -435,8 +435,9 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     user_id, name = if message_from.present? && !cannot_kick_usernames.include?(message_from['username'])
       [message_from['id'], [message_from['first_name'], message_from['last_name']].join(' ')]
     end
+    warned_user = User.find_by(telegram_id: user_id)
     return "Не могу выдать пользователю warn" unless user_id.present?
-    user.update(warns: user.warns + 1)
+    warned_user.update(warns: user.warns + 1)
     warns_limit = Config.find_by(key: 'warns_limit').value.to_i
     response = ''
     if user.warns >= warns_limit
@@ -449,6 +450,6 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       })
       return "#{name} получил #{warns_limit} предупреждений и был кикнут"
     end
-    "#{name} получил #{user.warns} предупреждений из #{warns_limit}"
+    "#{name} получил #{warn_user.warns} предупреждений из #{warns_limit}"
   end
 end
