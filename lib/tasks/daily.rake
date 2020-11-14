@@ -6,7 +6,7 @@ namespace :daily do
     user = User.where(status: :active).shuffle.sample
     message = Message.find_by(slug: 'person_of_a_day')
     return unless message.present?
-    response = message.interpolate({username: "@#{user.full_name_or_username}"})
+    response = message.interpolate({username: "[#{user.full_name_or_username}](tg://user?id=#{user.telegram_id})"})
     response = Message.add_image(response, :drink)
     Telegram.bot.send_message({text: response, chat_id: chat_id, parse_mode: :Markdown})
     if Date.current === Date.current.beginning_of_month

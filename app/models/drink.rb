@@ -55,7 +55,7 @@ class Drink < ApplicationRecord
         checkin_at = Time.parse(checkin['created_at'])
         next unless checkin_at > user.untappd_synced_at
         comment = checkin['checkin_comment']
-        comment_tag = comment ? "#{comment}\n\n" : ''
+        comment_tag = comment.present? ? "#{comment}\n\n" : ''
         photo = begin checkin['media']['items'][0]['photo']['photo_img_md'] rescue nil end
         photo_tag = photo.present? ? "[\u200c](#{photo})" : ''
         volume = comment.scan(/(\d+)\s?[мл|ml]/).flatten.first.to_f
