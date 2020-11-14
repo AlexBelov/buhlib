@@ -215,7 +215,7 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     drink_score = DrinksUser.where(user_id: user.id).
       where.not(abv: nil, volume: nil).
       map{|du| begin du.volume * du.abv / 100.0 rescue 0 end }.sum
-    book_score = BooksUser.where(user_id: user.id, finished: true).after(Date.current.beginning_of_month, field: :updated_at).count
+    book_score = BooksUser.where(user_id: user.id, finished: true).count
     respond_with :message, text: "*100% Спирт*: #{user.drink_score.to_i} мл (всего #{drink_score.to_i} мл)\n*Законченные книги*: #{user.book_score.to_i} (всего #{book_score.to_i})\n*Репутация*: #{user.reputation}", parse_mode: :Markdown
   rescue Exception => e
     puts "Error in command handler".red

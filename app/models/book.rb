@@ -33,6 +33,7 @@ class Book < ApplicationRecord
       book_user = user.books_users.where(book_id: book.id, finished: false).first
       book_user ||= BooksUser.create(book_id: book.id, user_id: user.id, finished: true)
       book_user.update(finished: true)
+      user.recalculate_scores
       "Теперь #{user.full_name} прочитал #{Book.pluralize(user.books_users.where(finished: true).count)}! (#{Book.pluralize(user.books_finished_this_month)} за этот месяц)"
     end
     return response
