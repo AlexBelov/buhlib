@@ -441,7 +441,7 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     warns_limit = Config.find_by(key: 'warns_limit').value.to_i
     response = ''
     if user.warns >= warns_limit
-      user.update(warns: 0)
+      warned_user.update(warns: 0)
       until_date = (Time.current + 1.minute).to_i
       Telegram.bot.kick_chat_member({
         chat_id: Rails.application.credentials.telegram[:bot][:chat_id].to_i,
@@ -450,6 +450,6 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
       })
       return "#{name} получил #{warns_limit} предупреждений и был кикнут"
     end
-    "#{name} получил #{warn_user.warns} предупреждений из #{warns_limit}"
+    "#{name} получил #{warned_user.warns} предупреждений из #{warns_limit}"
   end
 end
