@@ -48,6 +48,7 @@ class Book < ApplicationRecord
 
   def self.extract_book(payload)
     url = URI.extract(payload).first
+    url = payload unless url.present?
     Book.where(url: url).first_or_create
   rescue
     nil

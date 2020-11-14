@@ -175,6 +175,18 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     puts e.message
   end
 
+  def remove_book!(data = nil, *)
+    user = User.handle_user(from)
+    return unless user.present?
+    book = Book.extract_book(data).url
+    BooksUser.where(book_id: book.id, user_id: user.id).delete_all
+    user.recalculate_scores
+    respond_with :message, text: "Книга удалена", parse_mode: :Markdown if ar_response.present?
+  rescue Exception => e
+    puts "Error in command handler".red
+    puts e.message
+  end
+
   def all_achievements!(data = nil, *)
     user = User.handle_user(from)
     return unless user.present?
