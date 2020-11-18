@@ -210,10 +210,13 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   def find_drink_buddy!(data = nil, *)
     user = User.handle_user(from)
     return unless user.present?
-    buddy = User.where.not(id: user.id, username: [nil, '']).sample
+    buddy = User.where(status: :active).where.not(id: user.id).sample
     message = Message.find_by(slug: 'drink_buddy')
     return unless message.present?
-    response = message.interpolate({master_name: "@#{user.username}", buddy_name: "@#{buddy.username}"})
+    response = message.interpolate({
+      master_name: "[#{user.full_name_or_username}](tg://user?id=#{user.telegram_id})",
+      buddy_name: "[#{buddy.full_name_or_username}](tg://user?id=#{buddy.telegram_id})"
+    })
     response = Message.add_image(response, :drink)
     respond_with :message, text: response, parse_mode: :Markdown
   rescue Exception => e
@@ -421,11 +424,11 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     text = message['text'].downcase
     reputation = reputation_user.reputation
     message = if reputation_increase_words.map{|w| text.include?(w)}.any?
-      reputation += 1
+      reputation += user.admin.present? ? 10 : 1
       Message.find_by(slug: 'reputation_increase')
     elsif reputation_decrease_words.map{|w| text.include?(w)}.any?
-      reputation -= 1
-      reputation = 0 if reputation < 0
+      reputation -= user.admin.present? ? 10 : 1
+      # reputation = 0 if reputation < 0
       Message.find_by(slug: 'reputation_decrease')
     else
       nil
