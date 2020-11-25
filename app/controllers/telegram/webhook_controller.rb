@@ -424,10 +424,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     text = message['text'].downcase
     reputation = reputation_user.reputation
     message = if reputation_increase_words.map{|w| text.include?(w)}.any?
-      reputation += user.admin.present? ? 10 : 1
+      reputation += user.admin.present? ? 5 : 1
       Message.find_by(slug: 'reputation_increase')
     elsif reputation_decrease_words.map{|w| text.include?(w)}.any?
-      reputation -= user.admin.present? ? 10 : 1
+      reputation -= user.admin.present? ? 5 : 1
       # reputation = 0 if reputation < 0
       Message.find_by(slug: 'reputation_decrease')
     else
