@@ -18,7 +18,7 @@ module Buhlib
     # -- all .rb files in that directory are automatically loaded after loading
     # the framework and any gems in your application.
 
-    # Rails.application.routes.default_url_options[:host] = 'https://fd190b8aa897.ngrok.io'
-    Rails.application.routes.default_url_options[:host] = 'https://buhlib.herokuapp.com'
+    Rails.application.routes.default_url_options[:host] = 'https://51476cacf6dd.ngrok.io'
+    # Rails.application.routes.default_url_options[:host] = 'https://buhlib.herokuapp.com'
   end
 end

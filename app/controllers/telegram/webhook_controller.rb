@@ -84,6 +84,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   end
 
   def reading!(data = nil, *)
+    user = User.handle_user(from)
+    unless user.present? && user.admin.present?
+      respond_with :message, text: "Эта информация доступна только админам", parse_mode: :Markdown
+    end
     response = BooksUser.where(finished: false).
       includes(:user, :book).order(created_at: :desc).
       each_with_index.map{|bu, i| "#{i+1}. #{bu.user.full_name} читает #{bu.book.url}" }.
@@ -95,6 +99,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   end
 
   def top_drinks!(data = nil, *)
+    user = User.handle_user(from)
+    unless user.present? && user.admin.present?
+      respond_with :message, text: "Эта информация доступна только админам", parse_mode: :Markdown
+    end
     ordered_drinks = Drink.joins(:users).order("COUNT(users.id) DESC").group("drinks.id").limit(5)
     response = ordered_drinks.each_with_index.map{|d, i| "#{i + 1}. #{d.name}"}.join("\n")
     respond_with :message, text: "*Топ бухла*\n" + response, parse_mode: :Markdown
@@ -104,6 +112,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   end
 
   def top_readers!(data = nil, *)
+    user = User.handle_user(from)
+    unless user.present? && user.admin.present?
+      respond_with :message, text: "Эта информация доступна только админам", parse_mode: :Markdown
+    end
     ordered_users = User.where('book_score > 0').order(book_score: :desc).limit(10)
     response = ordered_users.each_with_index.map{|u, i| "#{i + 1}. #{u.full_name} - #{u.book_score.to_i}"}.join("\n")
     respond_with :message, text: "*Топ читателей*\n" + response, parse_mode: :Markdown
@@ -113,6 +125,10 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
   end
 
   def top_drinkers!(data = nil, *)
+    user = User.handle_user(from)
+    unless user.present? && user.admin.present?
+      respond_with :message, text: "Эта информация доступна только админам", parse_mode: :Markdown
+    end
     ordered_users = User.where('drink_score > 0').order(drink_score: :desc).limit(10)
     response = ordered_users.each_with_index.map{|u, i| "#{i + 1}. #{u.full_name} - #{u.drink_score.to_i} мл"}.join("\n")
     respond_with :message, text: "*Топ алкоголиков (в пересчете на 100% спирт)*\n" + response, parse_mode: :Markdown
@@ -278,52 +294,52 @@ class Telegram::WebhookController < Telegram::Bot::UpdatesController
     puts e.message
   end
 
-  def run!(data = nil, *)
-    user = User.handle_user(from)
-    return unless user.present?
-    drinks_count = user.drinks.count
-    books_count = user.drinks.count
-    response = if drinks_count <= 0 || books_count <= 0
-      "Для того, чтобы баллотироваться в президенты Бухотеки нужно и пить, и читать! Выпей бухла и прочитай книгу!"
-    else
-      user.update(run: true)
-      participants = User.where(run: true)
-      "#{user.full_name_or_username} баллотируется на пост президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
-    end
-    respond_with :message, text: response, parse_mode: :Markdown
-  rescue Exception => e
-    puts "Error in command handler".red
-    puts e.message
-  end
+  # def run!(data = nil, *)
+  #   user = User.handle_user(from)
+  #   return unless user.present?
+  #   drinks_count = user.drinks.count
+  #   books_count = user.drinks.count
+  #   response = if drinks_count <= 0 || books_count <= 0
+  #     "Для того, чтобы баллотироваться в президенты Бухотеки нужно и пить, и читать! Выпей бухла и прочитай книгу!"
+  #   else
+  #     user.update(run: true)
+  #     participants = User.where(run: true)
+  #     "#{user.full_name_or_username} баллотируется на пост президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+  #   end
+  #   respond_with :message, text: response, parse_mode: :Markdown
+  # rescue Exception => e
+  #   puts "Error in command handler".red
+  #   puts e.message
+  # end
 
-  def unrun!(data = nil, *)
-    user = User.handle_user(from)
-    return unless user.present?
-    response = if user.run
-      user.update(run: false)
-      participants = User.where(run: true)
-      "#{user.full_name_or_username} снимает свою кандидатуру с выборов президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
-    else
-      "Вы и так не участвуете в выборах президента Бухотеки."
-    end
-    respond_with :message, text: response, parse_mode: :Markdown
-  rescue Exception => e
-    puts "Error in command handler".red
-    puts e.message
-  end
+  # def unrun!(data = nil, *)
+  #   user = User.handle_user(from)
+  #   return unless user.present?
+  #   response = if user.run
+  #     user.update(run: false)
+  #     participants = User.where(run: true)
+  #     "#{user.full_name_or_username} снимает свою кандидатуру с выборов президента Бухотеки!\n\nВ выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+  #   else
+  #     "Вы и так не участвуете в выборах президента Бухотеки."
+  #   end
+  #   respond_with :message, text: response, parse_mode: :Markdown
+  # rescue Exception => e
+  #   puts "Error in command handler".red
+  #   puts e.message
+  # end
 
-  def elections!(data = nil, *)
-    participants = User.where(run: true)
-    response = if participants.count > 0
-      "В выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
-    else
-      "Никто не выдвигал свою кандидатуру на выборы"
-    end
-    respond_with :message, text: response, parse_mode: :Markdown
-  rescue Exception => e
-    puts "Error in command handler".red
-    puts e.message
-  end
+  # def elections!(data = nil, *)
+  #   participants = User.where(run: true)
+  #   response = if participants.count > 0
+  #     "В выборах участвуют:\n#{participants.map{|u| "\u2022 #{u.full_name_or_username}"}.join("\n")}"
+  #   else
+  #     "Никто не выдвигал свою кандидатуру на выборы"
+  #   end
+  #   respond_with :message, text: response, parse_mode: :Markdown
+  # rescue Exception => e
+  #   puts "Error in command handler".red
+  #   puts e.message
+  # end
 
   private
 
