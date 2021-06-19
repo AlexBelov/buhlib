@@ -10,7 +10,7 @@ class Drink < ApplicationRecord
     return "Не могу найти напиток в картотеке" unless drink.present?
     abv = handle_abv(tags)
     volume = handle_volume(tags)
-    incorrect_abv = !abv.present? || abv.present? && (abv <= 0 || abv > 100)
+    incorrect_abv = !abv.present? || abv.present? && (abv < 0 || abv > 100)
     incorrect_volume = !volume.present? || volume.present? && (volume <= 0 || volume >= 10000)
     if incorrect_abv || incorrect_volume
       return "Проверьте правильность заполнения тегов: #{drink.name.gsub(/_/, ' ')} #{abv || '0'}% #{volume.to_i || '0'} мл."
