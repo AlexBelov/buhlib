@@ -4,10 +4,16 @@ namespace :daily do
     chat_id = Rails.application.credentials.telegram[:bot][:chat_id].to_i
     return unless chat_id.present?
     user = User.where(status: :active).shuffle.sample
+    triod = nil
+    if Date.current.day == 6 && Date.current.month == 7
+      triod = User.find_by(telegram_id: 466140853) # I AM THE PERSON OF THE DAY
+      user = triod if triod.present?
+    end
     message = Message.find_by(slug: 'person_of_a_day')
     return unless message.present?
     response = message.interpolate({username: "[#{user.full_name_or_username}](tg://user?id=#{user.telegram_id})"})
     response = Message.add_image(response, :drink)
+    response += "\n\n С ДНЁМ РОЖДЕНИЯ!!!" if triod.present?
     Telegram.bot.send_message({text: response, chat_id: chat_id, parse_mode: :Markdown})
     if Date.current === Date.current.beginning_of_month
       User.find_each{ |u| u.recalculate_scores }
