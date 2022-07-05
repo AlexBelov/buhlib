@@ -15,7 +15,7 @@ gem 'bootsnap', '>= 1.4.2', require: false
 gem 'pry-rails'
 gem 'colorize'
 gem 'amazing_print'
-gem 'telegram-bot', '= 0.14.4'
+gem 'telegram-bot'
 gem 'by_star'
 gem 'russian'
 gem 'rails_admin', '~> 2.0'
